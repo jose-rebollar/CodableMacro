@@ -9,9 +9,9 @@ import XCTest
 import CodableMacroMacros
 
 let testMacros: [String: Macro.Type] = [
-    "extensionCodable": EGCodable.self,
-    "CodableKey": EGKey.self,
-    "CodableExcluded": EGExcluded.self,
+    "EGCodable": EGCodableMacro.self,
+    "EGKey": EGKeyMacro.self,
+    "EGExcluded": EGExcludedMacro.self,
 ]
 #endif
 
@@ -31,7 +31,8 @@ final class CodableMacroTests: XCTestCase {
                 var address: Int?
             }
             """,
-            expandedSource: """
+            expandedSource: 
+            """
             @EGCodable
             struct Response {
                 var name: String?
@@ -42,6 +43,7 @@ final class CodableMacroTests: XCTestCase {
                 @EGExcluded
                 var address: Int?
             }
+            
             extension Response: Codable {
                   enum CodingKeys: String, CodingKey {
                     case name

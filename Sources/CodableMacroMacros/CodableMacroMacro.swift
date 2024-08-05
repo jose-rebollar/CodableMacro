@@ -3,14 +3,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-//public enum CustomCodable: MemberMacro {
-//  public static func expansion(
-//    of node: AttributeSyntax,
-//    providingMembersOf declaration: some DeclGroupSyntax,
-//    in context: some MacroExpansionContext
-//  ) throws -> [DeclSyntax] {
-
-public enum EGCodable: ExtensionMacro {
+public enum EGCodableMacro: ExtensionMacro {
     public static func expansion(
         of node: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
@@ -18,10 +11,6 @@ public enum EGCodable: ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        //        of node: AttributeSyntax,
-        //        providingMembersOf declaration: some DeclGroupSyntax,
-        //        in context: some MacroExpansionContext
-        //    ) throws -> [DeclSyntax] {
         
         let memberList = declaration.memberBlock.members
         
@@ -37,14 +26,18 @@ public enum EGCodable: ExtensionMacro {
             }
             
             if let _ = member.decl.as(VariableDeclSyntax.self)?.attributes.first(where: { element in
-                element.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.description == "EGExcluded"
+                element.as(AttributeSyntax.self)?.attributeName
+                    .as(IdentifierTypeSyntax.self)?.description
+                    .trimmingCharacters(in: .whitespacesAndNewlines) == "EGExcluded"
             }) {
                 return nil
             }
             
             // if it has a CodableKey macro on it
             if let customKeyMacro = member.decl.as(VariableDeclSyntax.self)?.attributes.first(where: { element in
-                element.as(AttributeSyntax.self)?.attributeName.as(IdentifierTypeSyntax.self)?.description == "EGKey"
+                element.as(AttributeSyntax.self)?.attributeName
+                    .as(IdentifierTypeSyntax.self)?.description
+                    .trimmingCharacters(in: .whitespacesAndNewlines) == "EGKey"
             }) {
                 
                 // Uses the value in the Macro
@@ -59,13 +52,8 @@ public enum EGCodable: ExtensionMacro {
             }
         })
         
-//        let codingKeys: DeclSyntax = """
-//      enum CodingKeys: String, CodingKey {
-//        \(raw: cases.joined(separator: "\n"))
-//      }
-//      """
-        
-        let codableExtension = try ExtensionDeclSyntax("""
+        let codableExtension = try ExtensionDeclSyntax(
+          """
           extension \(type.trimmed): Codable {
                 enum CodingKeys: String, CodingKey {
                   \(raw: cases.joined(separator: "\n"))
@@ -74,11 +62,10 @@ public enum EGCodable: ExtensionMacro {
           """)
         
         return [ codableExtension ]
-//        return [codingKeys]
     }
 }
 
-public struct EGKey: PeerMacro {
+public struct EGKeyMacro: PeerMacro {
     public static func expansion(
         of node: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
@@ -89,7 +76,7 @@ public struct EGKey: PeerMacro {
     }
 }
 
-public struct EGExcluded: PeerMacro {
+public struct EGExcludedMacro: PeerMacro {
     public static func expansion(
         of node: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
@@ -103,8 +90,8 @@ public struct EGExcluded: PeerMacro {
 @main
 struct CodableMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        EGCodable.self,
-        EGKey.self,
-        EGExcluded.self
+        EGCodableMacro.self,
+        EGKeyMacro.self,
+        EGExcludedMacro.self
     ]
 }
